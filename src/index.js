@@ -71,7 +71,7 @@ import { IconPicture, IconTable } from '@codexteam/icons';
  * @property {object} [uploader] - optional custom uploader
  * @property {function(File): Promise.<UploadResponseFormat>} [uploader.uploadByFile] - method that upload image by File
  * @property {function(string): Promise.<UploadResponseFormat>} [uploader.uploadByUrl] - method that upload image by URL
- * @property {function(function(CropCoordinates): Promise.<string>): Promise.<void>} cropImage - method that creates a new cropped image based on the coordinates
+ * @property {function(CropArgs): Promise.<string>} cropImage - method that creates a new cropped image based on the coordinates
  */
 
 /**
@@ -85,7 +85,14 @@ import { IconPicture, IconTable } from '@codexteam/icons';
  */
 
 /**
- * @typedef {object} CroppCoordinates
+ * @typedef {object} CropArgs
+ * @description Coordinates of cropped image
+ * @property {string} imgUrl - image url
+ * @property {CropCoordinates} coords - coordinates of cropped image
+ */
+
+/**
+ * @typedef {object} CropCoordinates
  * @description Coordinates of cropped image
  * @property {number} x - x coordinate
  * @property {number} y - y coordinate
@@ -178,6 +185,7 @@ export default class ImageTool {
       buttonContent: config.buttonContent || '',
       uploader: config.uploader || undefined,
       actions: config.actions || [],
+      cropImage: config.cropImage || undefined,
     };
 
     /**
@@ -203,6 +211,19 @@ export default class ImageTool {
         });
       },
       readOnly,
+      onCropImage: async (coords) => {
+        if (this.config.cropImage) {
+          const url = await this.config.cropImage({
+            url: this.data.file.url,
+            coords,
+          });
+
+          this.replaceImage({ url });
+          this.setTune('crop', false);
+        } else {
+          console.error('cropImage callback is not defined');
+        }
+      },
     });
 
     /**
@@ -414,6 +435,18 @@ export default class ImageTool {
     if (file && file.url) {
       this.ui.fillImage(file.url);
     }
+  }
+
+  /**
+   * Update the image url
+   *
+   * @private
+   *
+   * @param {object} file - uploaded file data
+   */
+  replaceImage(file) {
+    this._data.file = file || {};
+    this.ui.replaceImage(file.url);
   }
 
   /**

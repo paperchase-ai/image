@@ -24,6 +24,7 @@ export default class Ui {
     this.onCropImage = onCropImage;
     this.readOnly = readOnly;
     this.cropper = null;
+    this.cropperCoords = null;
     this.nodes = {
       wrapper: make('div', [this.CSS.baseClass, this.CSS.wrapper]),
       imageContainer: make('div', [this.CSS.imageContainer]),
@@ -141,8 +142,7 @@ export default class Ui {
     button.innerHTML = `${IconTable} ${this.api.i18n.t('Crop Image')}`;
 
     button.addEventListener('click', () => {
-      console.log('crop image button clicked');
-      this.onCropImage();
+      this.onCropImage(this.cropperCoords);
     });
 
     return button;
@@ -242,6 +242,16 @@ export default class Ui {
   }
 
   /**
+   * Replaces an image with a new url
+   *
+   * @param {string} url - image source
+   * @returns {void}
+   */
+  replaceImage(url) {
+    this.nodes.imageEl.src = url;
+  }
+
+  /**
    * Shows caption input
    *
    * @param {string} text - caption text
@@ -282,23 +292,27 @@ export default class Ui {
       `${this.CSS.wrapper}--${tuneName}`,
       status
     );
-    console.log(status, tuneName);
     if (tuneName === 'crop' && status) {
-      console.log('time to crop');
-      // eslint-disable-next-line no-unused-vars
+      const setCoords = (coords) => {
+        this.cropperCoords = coords;
+      };
+
       this.cropper = new Cropper(this.nodes.imageEl, {
         aspectRatio: 16 / 9,
         crop(event) {
-          console.log('x ' + event.detail.x);
-          console.log('y ' + event.detail.y);
-          console.log('width ' + event.detail.width);
-          console.log('height ' + event.detail.height);
+          setCoords({
+            x: event.detail.x,
+            y: event.detail.y,
+            width: event.detail.width,
+            height: event.detail.height,
+          });
         },
       });
     }
     if (tuneName === 'crop' && !status && this.cropper) {
       this.cropper.destroy();
       this.cropper = null;
+      this.cropperCoords = null;
     }
   }
 }

@@ -2,25 +2,25 @@
 
 # Image Tool
 
-Image Block for the [Editor.js](https://editorjs.io).
+Fork of the Image Block for the [Editor.js](https://editorjs.io) with image cropping support.
 
-![](https://capella.pics/63a03d04-3816-45b2-87b2-d85e556f0066.jpg)
+![crop functionality gif](./assets/crop.gif)
 
 ## Features
 
+- [Crop an image](#crop-an-image)
 - Uploading file from the device
 - Pasting copied content from the web
 - Pasting images by drag-n-drop
 - Pasting files and screenshots from Clipboard
-- Allows adding a border, and a background
-- Allows stretching an image to the container's full-width
+- ~~Allows adding a border, and a background~~
+- ~~Allows stretching an image to the container's full-width~~
 
 **Notes**
 
 This Tool requires server-side implementation for the file uploading. See [backend response format](#server-format) for more details.
 
 This Tool is also capable of uploading & displaying video files using the `<video>` element. To enable this, specify video mime-types via the 'types' config param.
-
 
 ## Installation
 
@@ -72,17 +72,18 @@ var editor = EditorJS({
 
 Image Tool supports these configuration parameters:
 
-| Field | Type     | Description        |
-| ----- | -------- | ------------------ |
-| endpoints | `{byFile: string, byUrl: string}` | Endpoints for file uploading. <br> Contains 2 fields: <br> __byFile__ - for file uploading <br> __byUrl__ - for uploading by URL |
-| field | `string` | (default: `image`) Name of uploaded image field in POST request |
-| types | `string` | (default: `image/*`) Mime-types of files that can be [accepted with file selection](https://github.com/codex-team/ajax#accept-string).|
-| additionalRequestData | `object` | Object with any data you want to send with uploading requests |
-| additionalRequestHeaders | `object` | Object with any custom headers which will be added to request. [See example](https://github.com/codex-team/ajax/blob/e5bc2a2391a18574c88b7ecd6508c29974c3e27f/README.md#headers-object) |
-| captionPlaceholder | `string` | (default: `Caption`) Placeholder for Caption input |
-| buttonContent | `string` | Allows to override HTML content of «Select file» button |
-| uploader | `{{uploadByFile: function, uploadByUrl: function}}` | Optional custom uploading methods. See details below. |
-| actions | `array` | Array with custom actions to show in the tool's settings menu. See details below. |
+| Field                    | Type                                                | Description                                                                                                                                                                             |
+| ------------------------ | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| endpoints                | `{byFile: string, byUrl: string}`                   | Endpoints for file uploading. <br> Contains 2 fields: <br> **byFile** - for file uploading <br> **byUrl** - for uploading by URL                                                        |
+| field                    | `string`                                            | (default: `image`) Name of uploaded image field in POST request                                                                                                                         |
+| types                    | `string`                                            | (default: `image/*`) Mime-types of files that can be [accepted with file selection](https://github.com/codex-team/ajax#accept-string).                                                  |
+| additionalRequestData    | `object`                                            | Object with any data you want to send with uploading requests                                                                                                                           |
+| additionalRequestHeaders | `object`                                            | Object with any custom headers which will be added to request. [See example](https://github.com/codex-team/ajax/blob/e5bc2a2391a18574c88b7ecd6508c29974c3e27f/README.md#headers-object) |
+| captionPlaceholder       | `string`                                            | (default: `Caption`) Placeholder for Caption input                                                                                                                                      |
+| buttonContent            | `string`                                            | Allows to override HTML content of «Select file» button                                                                                                                                 |
+| uploader                 | `{{uploadByFile: function, uploadByUrl: function}}` | Optional custom uploading methods. See details below.                                                                                                                                   |
+| actions                  | `array`                                             | Array with custom actions to show in the tool's settings menu. See details below.                                                                                                       |
+| cropImage                | `function`                                          | Method that creates a new cropped image based on the coordinates                                                                                                                        |
 
 Note that if you don't implement your custom uploader methods, the `endpoints` param is required.
 
@@ -97,47 +98,47 @@ Note that if you don't implement your custom uploader methods, the `endpoints` p
 3. Add background
 
 Add extra setting-buttons by adding them to the `actions`-array in the configuration:
+
 ```js
 actions: [
-    {
-        name: 'new_button',
-        icon: '<svg>...</svg>',
-        title: 'New Button',
-        toggle: true,
-        action: (name) => {
-            alert(`${name} button clicked`);
-        }
-    }
-]
+  {
+    name: 'new_button',
+    icon: '<svg>...</svg>',
+    title: 'New Button',
+    toggle: true,
+    action: (name) => {
+      alert(`${name} button clicked`);
+    },
+  },
+];
 ```
 
-**_NOTE:_**  return value of `action` callback for settings whether action button should be toggled or not is *deprecated*. Consider using `toggle` option instead.
+**_NOTE:_** return value of `action` callback for settings whether action button should be toggled or not is _deprecated_. Consider using `toggle` option instead.
 
 ## Output data
 
 This Tool returns `data` with following format
 
-| Field          | Type      | Description                     |
-| -------------- | --------- | ------------------------------- |
+| Field          | Type      | Description                                                                               |
+| -------------- | --------- | ----------------------------------------------------------------------------------------- |
 | file           | `object`  | Uploaded file data. Any data got from backend uploader. Always contain the `url` property |
-| caption        | `string`  | image's caption                 |
-| withBorder     | `boolean` | add border to image             |
-| withBackground | `boolean` | need to add background          |
-| stretched      | `boolean` | stretch image to screen's width |
-
+| caption        | `string`  | image's caption                                                                           |
+| withBorder     | `boolean` | add border to image                                                                       |
+| withBackground | `boolean` | need to add background                                                                    |
+| stretched      | `boolean` | stretch image to screen's width                                                           |
 
 ```json
 {
-    "type" : "image",
-    "data" : {
-        "file": {
-            "url" : "https://www.tesla.com/tesla_theme/assets/img/_vehicle_redesign/roadster_and_semi/roadster/hero.jpg"
-        },
-        "caption" : "Roadster // tesla.com",
-        "withBorder" : false,
-        "withBackground" : false,
-        "stretched" : true
-    }
+  "type": "image",
+  "data": {
+    "file": {
+      "url": "https://www.tesla.com/tesla_theme/assets/img/_vehicle_redesign/roadster_and_semi/roadster/hero.jpg"
+    },
+    "caption": "Roadster // tesla.com",
+    "withBorder": false,
+    "withBackground": false,
+    "stretched": true
+  }
 }
 ```
 
@@ -162,17 +163,17 @@ Scenario:
 So, you can implement backend for file saving by your own way. It is a specific and trivial task depending on your
 environment and stack.
 
-The tool executes the request as [`multipart/form-data`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST), with the key as the value of `field`  in configuration.
+The tool executes the request as [`multipart/form-data`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST), with the key as the value of `field` in configuration.
 
-The response of your uploader **should**  cover the following format:
+The response of your uploader **should** cover the following format:
 
 ```json5
 {
-    "success" : 1,
-    "file": {
-        "url" : "https://www.tesla.com/tesla_theme/assets/img/_vehicle_redesign/roadster_and_semi/roadster/hero.jpg",
-        // ... and any additional fields you want to store, such as width, height, color, extension, etc
-    }
+  success: 1,
+  file: {
+    url: 'https://www.tesla.com/tesla_theme/assets/img/_vehicle_redesign/roadster_and_semi/roadster/hero.jpg',
+    // ... and any additional fields you want to store, such as width, height, color, extension, etc
+  },
 }
 ```
 
@@ -203,7 +204,6 @@ The tool executes the request as `application/json` with the following request b
 
 Response of your uploader should be at the same format as described at «[Uploading files from device](#from-device)» section
 
-
 ### Uploading by drag-n-drop or from Clipboard
 
 Your backend will accept file as FormData object in field name, specified by `config.field` (by default, «`image`»).
@@ -215,11 +215,10 @@ As mentioned at the Config Params section, you have an ability to provide own cu
 It is a quite simple: implement `uploadByFile` and `uploadByUrl` methods and pass them via `uploader` config param.
 Both methods must return a Promise that resolves with response in a format that described at the [backend response format](#server-format) section.
 
-
-| Method         | Arguments | Return value | Description |
-| -------------- | --------- | -------------| ------------|
-| uploadByFile   | `File`    | `{Promise.<{success, file: {url}}>}` | Upload file to the server and return an uploaded image data |
-| uploadByUrl    | `string`  | `{Promise.<{success, file: {url}}>}` | Send URL-string to the server, that should load image by this URL and return an uploaded image data |
+| Method       | Arguments | Return value                         | Description                                                                                         |
+| ------------ | --------- | ------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| uploadByFile | `File`    | `{Promise.<{success, file: {url}}>}` | Upload file to the server and return an uploaded image data                                         |
+| uploadByUrl  | `string`  | `{Promise.<{success, file: {url}}>}` | Send URL-string to the server, that should load image by this URL and return an uploaded image data |
 
 Example:
 
@@ -279,5 +278,28 @@ var editor = EditorJS({
   }
 
   ...
+});
+```
+
+## Crop an image
+
+The cropper provides a callback that accepts the source image url and crop coordinates that returns the url of the cropped image. This allows you to use your own implementation.
+
+```js
+import ImageTool from '@paperchase/image';
+
+const editor = new EditorJS({
+  tools: {
+    image: {
+      class: ImageTool,
+      config: {
+        cropImage: async ({ url, coords: { x, y, height, width } }) => {
+          console.log(url);
+          console.log(x, y, height, width);
+          return Promise.resolve('https://new/image/url.png');
+        },
+      },
+    },
+  },
 });
 ```

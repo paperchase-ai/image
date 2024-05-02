@@ -87,6 +87,10 @@
     }
   }
 
+  .cdx-button.crop-image-button {
+    margin-bottom: 10px;
+  }
+
   &:not(&--crop) {
     .cdx-button.crop-image-button {
       display: none;
