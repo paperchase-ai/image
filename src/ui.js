@@ -1,4 +1,5 @@
-import { IconPicture } from '@codexteam/icons';
+import { IconPicture, IconTable } from '@codexteam/icons';
+import Cropper from 'cropperjs';
 import { make } from './utils/dom';
 
 /**
@@ -13,22 +14,26 @@ export default class Ui {
    * @param {object} ui.api - Editor.js API
    * @param {ImageConfig} ui.config - user config
    * @param {Function} ui.onSelectFile - callback for clicks on Select file button
+   * @param {Function} ui.onCropImage - callback for clicks on crop image button
    * @param {boolean} ui.readOnly - read-only mode flag
    */
-  constructor({ api, config, onSelectFile, readOnly }) {
+  constructor({ api, config, onSelectFile, onCropImage, readOnly }) {
     this.api = api;
     this.config = config;
     this.onSelectFile = onSelectFile;
+    this.onCropImage = onCropImage;
     this.readOnly = readOnly;
+    this.cropper = null;
     this.nodes = {
       wrapper: make('div', [this.CSS.baseClass, this.CSS.wrapper]),
-      imageContainer: make('div', [ this.CSS.imageContainer ]),
+      imageContainer: make('div', [this.CSS.imageContainer]),
       fileButton: this.createFileButton(),
       imageEl: undefined,
       imagePreloader: make('div', this.CSS.imagePreloader),
       caption: make('div', [this.CSS.input, this.CSS.caption], {
         contentEditable: !this.readOnly,
       }),
+      cropImageButton: this.createCropImageButton(),
     };
 
     /**
@@ -44,6 +49,7 @@ export default class Ui {
     this.nodes.caption.dataset.placeholder = this.config.captionPlaceholder;
     this.nodes.imageContainer.appendChild(this.nodes.imagePreloader);
     this.nodes.wrapper.appendChild(this.nodes.imageContainer);
+    this.nodes.wrapper.appendChild(this.nodes.cropImageButton);
     this.nodes.wrapper.appendChild(this.nodes.caption);
     this.nodes.wrapper.appendChild(this.nodes.fileButton);
   }
@@ -59,6 +65,8 @@ export default class Ui {
       loading: this.api.styles.loader,
       input: this.api.styles.input,
       button: this.api.styles.button,
+      fileButton: 'file-button',
+      cropImageButton: 'crop-image-button',
 
       /**
        * Tool's classes
@@ -69,7 +77,7 @@ export default class Ui {
       imageEl: 'image-tool__image-picture',
       caption: 'image-tool__caption',
     };
-  };
+  }
 
   /**
    * Ui statuses:
@@ -109,12 +117,32 @@ export default class Ui {
    * @returns {Element}
    */
   createFileButton() {
-    const button = make('div', [ this.CSS.button ]);
+    const button = make('div', [this.CSS.button, this.CSS.fileButton]);
 
-    button.innerHTML = this.config.buttonContent || `${IconPicture} ${this.api.i18n.t('Select an Image')}`;
+    button.innerHTML =
+      this.config.buttonContent ||
+      `${IconPicture} ${this.api.i18n.t('Select an Image')}`;
 
     button.addEventListener('click', () => {
       this.onSelectFile();
+    });
+
+    return button;
+  }
+
+  /**
+   * Creates crop image button
+   *
+   * @returns {Element}
+   */
+  createCropImageButton() {
+    const button = make('div', [this.CSS.button, this.CSS.cropImageButton]);
+
+    button.innerHTML = `${IconTable} ${this.api.i18n.t('Crop Image')}`;
+
+    button.addEventListener('click', () => {
+      console.log('crop image button clicked');
+      this.onCropImage();
     });
 
     return button;
@@ -234,7 +262,10 @@ export default class Ui {
   toggleStatus(status) {
     for (const statusType in Ui.status) {
       if (Object.prototype.hasOwnProperty.call(Ui.status, statusType)) {
-        this.nodes.wrapper.classList.toggle(`${this.CSS.wrapper}--${Ui.status[statusType]}`, status === Ui.status[statusType]);
+        this.nodes.wrapper.classList.toggle(
+          `${this.CSS.wrapper}--${Ui.status[statusType]}`,
+          status === Ui.status[statusType]
+        );
       }
     }
   }
@@ -247,7 +278,27 @@ export default class Ui {
    * @returns {void}
    */
   applyTune(tuneName, status) {
-    this.nodes.wrapper.classList.toggle(`${this.CSS.wrapper}--${tuneName}`, status);
+    this.nodes.wrapper.classList.toggle(
+      `${this.CSS.wrapper}--${tuneName}`,
+      status
+    );
+    console.log(status, tuneName);
+    if (tuneName === 'crop' && status) {
+      console.log('time to crop');
+      // eslint-disable-next-line no-unused-vars
+      this.cropper = new Cropper(this.nodes.imageEl, {
+        aspectRatio: 16 / 9,
+        crop(event) {
+          console.log('x ' + event.detail.x);
+          console.log('y ' + event.detail.y);
+          console.log('width ' + event.detail.width);
+          console.log('height ' + event.detail.height);
+        },
+      });
+    }
+    if (tuneName === 'crop' && !status && this.cropper) {
+      this.cropper.destroy();
+      this.cropper = null;
+    }
   }
 }
-

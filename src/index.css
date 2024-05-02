@@ -86,9 +86,15 @@
       margin: 0 6px 0 0;
     }
   }
+
+  &:not(&--crop) {
+    .cdx-button.crop-image-button {
+      display: none;
+    }
+  }
   
   &--filled {
-    .cdx-button {
+    .cdx-button.file-button {
       display: none;
     }
 

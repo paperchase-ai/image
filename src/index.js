@@ -42,11 +42,19 @@
  */
 
 import './index.css';
+import 'cropperjs/dist/cropper.css';
 
 import Ui from './ui';
 import Uploader from './uploader';
 
-import { IconAddBorder, IconStretch, IconAddBackground, IconPicture } from '@codexteam/icons';
+// import {
+//   IconAddBorder,
+//   IconStretch,
+//   IconAddBackground,
+//   IconPicture,
+//   IconTable,
+// } from '@codexteam/icons';
+import { IconPicture, IconTable } from '@codexteam/icons';
 
 /**
  * @typedef {object} ImageConfig
@@ -63,6 +71,7 @@ import { IconAddBorder, IconStretch, IconAddBackground, IconPicture } from '@cod
  * @property {object} [uploader] - optional custom uploader
  * @property {function(File): Promise.<UploadResponseFormat>} [uploader.uploadByFile] - method that upload image by File
  * @property {function(string): Promise.<UploadResponseFormat>} [uploader.uploadByUrl] - method that upload image by URL
+ * @property {function(function(CropCoordinates): Promise.<string>): Promise.<void>} cropImage - method that creates a new cropped image based on the coordinates
  */
 
 /**
@@ -73,6 +82,15 @@ import { IconAddBorder, IconStretch, IconAddBackground, IconPicture } from '@cod
  *                           'url' is required,
  *                           also can contain any additional data that will be saved and passed back
  * @property {string} file.url - [Required] image source URL
+ */
+
+/**
+ * @typedef {object} CroppCoordinates
+ * @description Coordinates of cropped image
+ * @property {number} x - x coordinate
+ * @property {number} y - y coordinate
+ * @property {number} width - width of cropped image
+ * @property {number} height - height of cropped image
  */
 export default class ImageTool {
   /**
@@ -105,22 +123,28 @@ export default class ImageTool {
    */
   static get tunes() {
     return [
+      // {
+      //   name: 'withBorder',
+      //   icon: IconAddBorder,
+      //   title: 'With border',
+      //   toggle: true,
+      // },
+      // {
+      //   name: 'stretched',
+      //   icon: IconStretch,
+      //   title: 'Stretch image',
+      //   toggle: true,
+      // },
+      // {
+      //   name: 'withBackground',
+      //   icon: IconAddBackground,
+      //   title: 'With background',
+      //   toggle: true,
+      // },
       {
-        name: 'withBorder',
-        icon: IconAddBorder,
-        title: 'With border',
-        toggle: true,
-      },
-      {
-        name: 'stretched',
-        icon: IconStretch,
-        title: 'Stretch image',
-        toggle: true,
-      },
-      {
-        name: 'withBackground',
-        icon: IconAddBackground,
-        title: 'With background',
+        name: 'crop',
+        icon: IconTable,
+        title: 'Crop',
         toggle: true,
       },
     ];
@@ -148,7 +172,9 @@ export default class ImageTool {
       additionalRequestHeaders: config.additionalRequestHeaders || {},
       field: config.field || 'image',
       types: config.types || 'image/*',
-      captionPlaceholder: this.api.i18n.t(config.captionPlaceholder || 'Caption'),
+      captionPlaceholder: this.api.i18n.t(
+        config.captionPlaceholder || 'Caption'
+      ),
       buttonContent: config.buttonContent || '',
       uploader: config.uploader || undefined,
       actions: config.actions || [],
@@ -235,7 +261,7 @@ export default class ImageTool {
     // @see https://github.com/editor-js/image/pull/49
     const tunes = ImageTool.tunes.concat(this.config.actions);
 
-    return tunes.map(tune => ({
+    return tunes.map((tune) => ({
       icon: tune.icon,
       label: this.api.i18n.t(tune.title),
       name: tune.name,
@@ -290,7 +316,7 @@ export default class ImageTool {
        * Drag n drop file from into the Editor
        */
       files: {
-        mimeTypes: [ 'image/*' ],
+        mimeTypes: ['image/*'],
       },
     };
   }
@@ -355,7 +381,10 @@ export default class ImageTool {
     this.ui.fillCaption(this._data.caption);
 
     ImageTool.tunes.forEach(({ name: tune }) => {
-      const value = typeof data[tune] !== 'undefined' ? data[tune] === true || data[tune] === 'true' : false;
+      const value =
+        typeof data[tune] !== 'undefined'
+          ? data[tune] === true || data[tune] === 'true'
+          : false;
 
       this.setTune(tune, value);
     });
@@ -449,10 +478,11 @@ export default class ImageTool {
       /**
        * Wait until the API is ready
        */
-      Promise.resolve().then(() => {
-        this.block.stretched = value;
-      })
-        .catch(err => {
+      Promise.resolve()
+        .then(() => {
+          this.block.stretched = value;
+        })
+        .catch((err) => {
           console.error(err);
         });
     }

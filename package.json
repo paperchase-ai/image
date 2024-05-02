@@ -1,5 +1,5 @@
 {
-  "name": "@editorjs/image",
+  "name": "paperchase-editorjs-image",
   "version": "2.9.0",
   "keywords": [
     "codex editor",
@@ -45,6 +45,7 @@
     "vite-plugin-css-injected-by-js": "^3.3.0"
   },
   "dependencies": {
-    "@codexteam/icons": "^0.0.6"
+    "@codexteam/icons": "^0.0.6",
+    "cropperjs": "^1.6.2"
   }
 }
