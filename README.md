@@ -2,7 +2,7 @@
 
 # Image Tool
 
-Fork of the Image Block for the [Editor.js](https://editorjs.io) with image cropping support.
+Fork of the Image Block for [Editor.js](https://editorjs.io) with image cropping support.
 
 ![crop functionality gif](./assets/crop.gif)
 
